@@ -1,8 +1,6 @@
 import { Matrix } from 'transformation-matrix-js';
-import paper from 'paper';
-import {scaleLinear, scaleOrdinal} from "d3-scale";
-import {schemeSet1, schemeSet2, schemeTableau10} from "d3-scale-chromatic";
 
+// code copied from https://observablehq.com/@kelleyvanevert/l-systems-2
 export function parse(text = '') {
   const def = {
     axiom: 'X',
@@ -183,84 +181,3 @@ export function linedata(g, order = g.system.order) {
   });
 }
 
-export function drawCanvas(context, data) {
-  console.log(context, data)
-  const S = 800;
-  const concurrency = 4;
-
-  const bgColor = '#101115';
-  const b = bounds(data.lines);
-  const scaleX = scaleLinear()
-    .domain([b[0], b[2]])
-    .range([10, S - 10]);
-  const scaleY = scaleLinear()
-    .domain([b[1], b[3]])
-    .range([10, S - 10]);
-  const color1 = scaleOrdinal(schemeSet1);
-  const color2 = scaleOrdinal(schemeSet2);
-  const color3 = scaleOrdinal(schemeTableau10);
-  paper.setup(context.canvas);
-  paper.view.viewSize = new paper.Size(S, S);
-  // BACKGROUND LAYER
-  const backgroundLayer = new paper.Layer();
-  const background = new paper.Path.Rectangle(paper.view.bounds);
-  background.style = { fillColor: bgColor };
-  const lines = data.lines.reverse();
-  let i = 0;
-  const paths = [];
-  paper.view.onFrame = function () {
-    for (let batch = 0; batch < concurrency; batch++) {
-      const pos = batch * Math.floor(lines.length / concurrency) + i;
-      if (!lines[pos]) continue;
-      const path = new paper.Path({
-        segments: [],
-        strokeColor: 'white'
-      });
-      lines[pos].forEach(point => {
-        path.add(new paper.Point(scaleX(point.x), scaleY(point.y)));
-      });
-      path.fillColor =
-        path.firstSegment.point.x > S / 2
-          ? // Math.random() * 2 > 1
-            color1(path.segments.length % 2)
-          : color2(path.segments.length % 2);
-      paths.push(path);
-    }
-    // change some fill colors randomly on every frame
-    for (let j = 0; j < 20; j++) {
-      const rndPos = Math.floor(Math.random() * (paths.length - 1));
-      if (!paths[rndPos].fillColor) continue;
-      paths[rndPos].fillColor = color3(
-        paths[rndPos].segments.length
-      );
-    }
-
-    i++;
-  }
-
-  // for (let i = 0; i < lines.length / concurrency; i++) {
-  //   for (let batch = 0; batch < concurrency; batch++) {
-  //     const pos = batch * Math.floor(lines.length / concurrency) + i;
-  //     if (!lines[pos]) continue;
-  //     const path = new paper.Path({
-  //       segments: [],
-  //       strokeColor: 'white'
-  //     });
-  //     lines[pos].forEach(point => {
-  //       path.add(new paper.Point(scaleX(point.x), scaleY(point.y)));
-  //     });
-  //     path.fillColor =
-  //       path.firstSegment.point.x > S / 2
-  //         ? // Math.random() * 2 > 1
-  //           color1(path.segments.length % 2)
-  //         : color2(path.segments.length % 2);
-  //     paths.push(path);
-  //   }
-  //   paper.view.draw();
-  // }
-  console.log('done')
-  // for (let j = 0; j < paths.length; j++) {
-  //   paths[j].fillColor = color3(paths[j].segments.length);
-  // }
-  // yield context.canvas;
-}
