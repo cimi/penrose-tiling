@@ -7,7 +7,7 @@
     "build": "sapper build --legacy",
     "export": "sapper export --basepath penrose-tiling --legacy",
     "start": "node __sapper__/build",
-    "deploy": "node ./scripts/gh-pages.js",
+    "deploy": "npm run export && node ./scripts/gh-pages.js",
     "cy:run": "cypress run",
     "cy:open": "cypress open",
     "test": "run-p --race dev cy:run"
